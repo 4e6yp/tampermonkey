@@ -26,6 +26,8 @@
 
     const KrishaLog = (...args) => console.log('[KrishaEnhanced] ', ...args)
 
+    const getItemUrl = (id) => `https://krisha.kz/a/show/${id}`;
+
     class LocalStorage {
       static getIds(key) {
         return localStorage.getItem(key)?.split(',') ?? [];
@@ -130,13 +132,15 @@
     class FavoritesListItem extends ListItem {
       actionsPanelSelector = '.a-note-container'
       whatsappButtonClass = 'enchanced-send-whatsapp';
+      sentMessageFlagText = ' (еще раз)'
 
       setSentMessage() {
         LocalStorage.addUniqueItem(LOCAL_STORAGE_KEYS.sentMessage, this.getId());
-        const button = this.item.querySelector(`.${whatsappButtonClass}`)
+        const button = this.item.querySelector(`.${this.whatsappButtonClass}`)
         if (!button) return;
 
-        button.innerText += ' (еще раз)'
+        if (!button.innerText.includes(this.sentMessageFlagText))
+        button.innerText += this.sentMessageFlagText
       }
 
       hasSentMessage() {
@@ -145,7 +149,7 @@
 
       getWhatsAppTemplate() {
         const note = this.getNoteText();
-        const base = `Здравствуйте! \nНас зовут Алексей и Айгерим. Мы нашли ваше объявление на Крыше: https://krisha.kz/a/show/${this.getId()}. \nПодскажите, пожалуйста, оно еще актуально?`
+        const base = `Здравствуйте! \nНас зовут Алексей и Айгерим. Мы нашли ваше объявление на Крыше: ${getItemUrl(this.getId())}. \nПодскажите, пожалуйста, оно еще актуально?`
         return encodeURIComponent([base, note].join('\n'));
       }
 
@@ -176,7 +180,7 @@
           })
           .catch(error => {
             console.error('Error:', error);
-            alert('Error', error)
+            alert(`Fetching phones failed!`);
           });
       }
 
@@ -196,7 +200,7 @@
 
         let buttonText = 'Написать в Whatsapp';
         if (this.hasSentMessage()) {
-          buttonText += ' (еще раз)';
+          buttonText += this.sentMessageFlagText;
         }
         whatsappButton.innerText = buttonText;
 
